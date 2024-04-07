@@ -92,7 +92,7 @@ export default function PostTweetForm() {
                 userId: user.uid, // 이름 동일할 수 있으니 삭제 권한 부여 위해
             });
             if( file ) {
-                const locationRef = ref(storage, `tweets/${user.uid}-${user.displayName}/${doc.id}`);
+                const locationRef = ref(storage, `tweets/${user.uid}/${doc.id}`);
                 const result = await uploadBytes(locationRef, file);
                 const url = await getDownloadURL(result.ref);
 
