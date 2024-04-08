@@ -50,13 +50,14 @@ const Name = styled.span`
 `;
 
 const Tweets = styled.div`
-
+    width: 100%;
 `;
 
 export default function Profile(){
     const user = auth.currentUser;
     const [avatar, setAvatar] = useState(user?.photoURL);
     const [tweets, setTweets] = useState<ITweet[]>([]);
+
     const onAvatarChange = async (e:React.ChangeEvent<HTMLInputElement>) => {
         const {files} = e.target;
         if(!user) return;
