@@ -1,8 +1,19 @@
 import styled from "styled-components";
-import { auth, storage } from "../firebase"
-import { useState } from "react";
+import { auth, db, storage } from "../firebase"
+import { useEffect, useState } from "react";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { updateProfile } from "firebase/auth";
+import { Unsubscribe, updateProfile } from "firebase/auth";
+import { collection, limit, onSnapshot, orderBy, query, where } from "firebase/firestore";
+import Tweet from "../components/tweet";
+
+export interface ITweet {
+    id: string;
+    photo?: string;
+    tweet: string;
+    userId: string;
+    username: string;
+    createdAt: number;
+  }
 
 const Wrapper = styled.div`
     display: flex;
@@ -38,9 +49,14 @@ const Name = styled.span`
     font-size: 22px;
 `;
 
+const Tweets = styled.div`
+
+`;
+
 export default function Profile(){
     const user = auth.currentUser;
     const [avatar, setAvatar] = useState(user?.photoURL);
+    const [tweets, setTweets] = useState<ITweet[]>([]);
     const onAvatarChange = async (e:React.ChangeEvent<HTMLInputElement>) => {
         const {files} = e.target;
         if(!user) return;
@@ -55,6 +71,36 @@ export default function Profile(){
             });
         }
     };
+    /* */
+    useEffect(() => {
+        let unsubscribe : Unsubscribe | null = null;
+        const fetchTweets = async() => {
+            const tweetsQuery = query(
+                collection(db, "tweets"),
+                orderBy("createdAt", "desc"),
+                where("userId", "==", user?.uid),
+                limit(25),
+            );
+            unsubscribe = await onSnapshot(tweetsQuery, (snapshot) => {
+                const tweets = snapshot.docs.map((doc) => {
+                  const { tweet, createdAt, userId, username, photo } = doc.data();
+                  return {
+                    tweet,
+                    createdAt,
+                    userId,
+                    username,
+                    photo,
+                    id: doc.id,
+                  };
+                });
+                setTweets(tweets); // 문서 생성하는 대신 쿼리에 리스너 추가
+              });
+        };
+        fetchTweets();
+        return () => {
+            unsubscribe && unsubscribe();
+          }
+    }, []);
 
     return (
     <Wrapper>
@@ -84,5 +130,11 @@ export default function Profile(){
         <Name>
             {user?.displayName ? user.displayName : "Anonymous"}
         </Name>
-    </Wrapper>)
+        <Tweets>
+            {tweets.map((tweet) => (
+                <Tweet key={tweet.id} {...tweet} />
+            ))}
+        </Tweets>
+    </Wrapper>
+    )
 }

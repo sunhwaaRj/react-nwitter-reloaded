@@ -16,7 +16,7 @@ export interface ITweet {
 
 const Wrapper = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 0px;
   flex-direction: column;
 `;
 
@@ -56,7 +56,7 @@ export default function Timeline() {
           };
         });
         setTweet(tweets); // 문서 생성하는 대신 쿼리에 리스너 추가
-      })
+      });
     };
     fetchTweets();
     return () => {
